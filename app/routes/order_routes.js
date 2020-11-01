@@ -3,8 +3,8 @@ const express = require('express')
 // Passport docs: http://www.passportjs.org/docs/
 const passport = require('passport')
 
-// pull in Mongoose model for items
-const Item = require('../models/item')
+// pull in Mongoose model for orders
+const order = require('../models/order')
 
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
@@ -17,7 +17,7 @@ const handle404 = customErrors.handle404
 const requireOwnership = customErrors.requireOwnership
 
 // this is middleware that will remove blank fields from `req.body`, e.g.
-// { Item: { title: '', text: 'foo' } } -> { Item: { text: 'foo' } }
+// { order: { title: '', text: 'foo' } } -> { order: { text: 'foo' } }
 const removeBlanks = require('../../lib/remove_blank_fields')
 // passing this as a second argument to `router.<verb>` will make it
 // so that a token MUST be passed for that route to be available
@@ -28,43 +28,43 @@ const requireToken = passport.authenticate('bearer', { session: false })
 const router = express.Router()
 
 // INDEX
-// GET /items
-router.get('/items', requireToken, (req, res, next) => {
-  Item.find()
-    .then(items => {
-      // `items` will be an array of Mongoose documents
+// GET /orders
+router.get('/orders', requireToken, (req, res, next) => {
+  order.find()
+    .then(orders => {
+      // `orders` will be an array of Mongoose documents
       // we want to convert each one to a POJO, so we use `.map` to
       // apply `.toObject` to each one
-      return items.map(item => item.toObject())
+      return orders.map(order => order.toObject())
     })
-    // respond with status 200 and JSON of the items
-    .then(items => res.status(200).json({ items: items }))
+    // respond with status 200 and JSON of the orders
+    .then(orders => res.status(200).json({ orders: orders }))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
 
 // SHOW
-// GET /items/5a7db6c74d55bc51bdf39793
-router.get('/items/:id', requireToken, (req, res, next) => {
+// GET /orders/5a7db6c74d55bc51bdf39793
+router.get('/orders/:id', requireToken, (req, res, next) => {
   // req.params.id will be set based on the `:id` in the route
-  Item.findById(req.params.id)
+  order.findById(req.params.id)
     .then(handle404)
     // if `findById` is succesful, respond with 200 and "example" JSON
-    .then(item => res.status(200).json({ item: item.toObject() }))
+    .then(order => res.status(200).json({ order: order.toObject() }))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
 
 // CREATE
-// POST /items
-router.post('/items', requireToken, (req, res, next) => {
-  // set owner of new item to be current user
-  req.body.item.owner = req.user.id
+// POST /orders
+router.post('/orders', requireToken, (req, res, next) => {
+  // set owner of new order to be current user
+  req.body.order.owner = req.user.id
 
-  Item.create(req.body.item)
-    // respond to succesful `create` with status 201 and JSON of new "item"
-    .then(item => {
-      res.status(201).json({ item: item.toObject() })
+  Order.create(req.body.order)
+    // respond to succesful `create` with status 201 and JSON of new "order"
+    .then(order => {
+      res.status(201).json({ order: order.toObject() })
     })
     // if an error occurs, pass it off to our error handler
     // the error handler needs the error message and the `res` object so that it
@@ -73,21 +73,21 @@ router.post('/items', requireToken, (req, res, next) => {
 })
 
 // UPDATE
-// PATCH /items/5a7db6c74d55bc51bdf39793
-router.patch('/items/:id', requireToken, removeBlanks, (req, res, next) => {
+// PATCH /orders/5a7db6c74d55bc51bdf39793
+router.patch('/orders/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
-  delete req.body.item.owner
+  delete req.body.order.owner
 
-  Item.findById(req.params.id)
+  Order.findById(req.params.id)
     .then(handle404)
-    .then(item => {
+    .then(order => {
       // pass the `req` object and the Mongoose record to `requireOwnership`
       // it will throw an error if the current user isn't the owner
-      requireOwnership(req, item)
+      requireOwnership(req, order)
 
       // pass the result of Mongoose's `.update` to the next `.then`
-      return item.updateOne(req.body.item)
+      return order.updateOne(req.body.order)
     })
     // if that succeeded, return 204 and no JSON
     .then(() => res.sendStatus(204))
@@ -96,15 +96,15 @@ router.patch('/items/:id', requireToken, removeBlanks, (req, res, next) => {
 })
 
 // DESTROY
-// DELETE /items/5a7db6c74d55bc51bdf39793
-router.delete('/items/:id', requireToken, (req, res, next) => {
-  Item.findById(req.params.id)
+// DELETE /orders/5a7db6c74d55bc51bdf39793
+router.delete('/orders/:id', requireToken, (req, res, next) => {
+  Order.findById(req.params.id)
     .then(handle404)
-    .then(item => {
+    .then(order => {
       // throw an error if current user doesn't own `example`
-      requireOwnership(req, item)
-      // delete the item ONLY IF the above didn't throw
-      item.deleteOne()
+      requireOwnership(req, order)
+      // delete the order ONLY IF the above didn't throw
+      order.deleteOne()
     })
     // send back 204 and no content if the deletion succeeded
     .then(() => res.sendStatus(204))
