@@ -61,7 +61,7 @@ router.post('/orders', requireToken, (req, res, next) => {
   // set owner of new order to be current user
   req.body.order.owner = req.user.id
 
-  Order.create(req.body.order)
+  order.create(req.body.order)
     // respond to succesful `create` with status 201 and JSON of new "order"
     .then(order => {
       res.status(201).json({ order: order.toObject() })
@@ -79,7 +79,7 @@ router.patch('/orders/:id', requireToken, removeBlanks, (req, res, next) => {
   // owner, prevent that by deleting that key/value pair
   delete req.body.order.owner
 
-  Order.findById(req.params.id)
+  order.findById(req.params.id)
     .then(handle404)
     .then(order => {
       // pass the `req` object and the Mongoose record to `requireOwnership`
@@ -98,7 +98,7 @@ router.patch('/orders/:id', requireToken, removeBlanks, (req, res, next) => {
 // DESTROY
 // DELETE /orders/5a7db6c74d55bc51bdf39793
 router.delete('/orders/:id', requireToken, (req, res, next) => {
-  Order.findById(req.params.id)
+  order.findById(req.params.id)
     .then(handle404)
     .then(order => {
       // throw an error if current user doesn't own `example`

@@ -9,10 +9,6 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  review: {
-    type: String,
-    required: false
-  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

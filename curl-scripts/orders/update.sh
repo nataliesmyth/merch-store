@@ -1,3 +1,4 @@
+  
 #!/bin/bash
 
 API="http://localhost:4741"
@@ -7,11 +8,10 @@ curl "${API}${URL_PATH}/${ID}" \
   --include \
   --request PATCH \
   --header "Content-Type: application/json" \
---header "Authorization: Bearer ${TOKEN}" \
---data '{
+  --header "Authorization: Bearer ${TOKEN}" \
+  --data '{
     "order": {
-      "itemName": "'"${NAME}"'",
-      "itemPrice": "'"${PRICE}"'"
+      "itemName": "'"${NAME}"'"
     }
   }'
 
